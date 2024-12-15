@@ -2,7 +2,7 @@ import random
 
 locations = {
     "Лесная поляна": {
-        "Описание": "Солнечная поляна, полная сочной травы. Воздух наполнен ароматом цветов. В центре поляны стоит огромный дуб с дуплом.",
+        "Описание": "Солнечная поляна, полная сочной травы. В воздухе пахнет цветами. В центре поляны стоит большой дуб с дуплом.",
         "Предметы": ["Морковка", "Трава"],
         "Задача": "Найдите морковку, чтобы подкормить крольчонка, который прячется в дупле дуба.",
         "Крольчонок": True,
@@ -24,7 +24,7 @@ locations = {
         "Крольчонок": False,
         "Лиса": False,
         "Дупло": False,
-        "Мостик": False
+        "Мостик": True
     },
     "Нора": {
         "Описание": "Теплая и уютная нора, где можно спрятаться от опасности. Внутри норы стоит уютный гнездышко из мягкой травы.",
@@ -37,68 +37,79 @@ locations = {
     }
 }
 
-inventory = []
-current_location = "Лесная поляна"
+# Игрок
+player = {
+    "Инвентарь": [],
+    "Текущая_локация": "Лесная поляна",
+    "Победа": False
+}
 
-def show_location(location_name):
-    location = locations[location_name]
+# Функция для вывода описания локации
+def show_location():
+    location = locations[player["Текущая_локация"]]
     print(location["Описание"])
-    print("В этой локации вы можете найти:", ", ".join(location["Предметы"]))
-    print()
+    print("В этой локации вы можете найти:")
+    for i, item in enumerate(location["Предметы"]):
+        print(f"{i+1}. {item}")
 
-def process_command(command):
-    global current_location, inventory
-
-    if command == "взять":
+# Функция для обработки команд игрока
+def process_command(choice):
+    global player
+    location = locations[player["Текущая_локация"]]
+    if choice == 1: # взять
         item_name = input("Какой предмет вы хотите взять? ")
-        location = locations[current_location]
         if item_name in location["Предметы"]:
-            inventory.append(item_name)
+            player["Инвентарь"].append(item_name)
             location["Предметы"].remove(item_name)
             print(f"Вы взяли {item_name}.")
         else:
             print("Такого предмета нет в локации.")
-
-    elif command == "использовать":
+    elif choice == 2: # использовать
         item_name = input("Какой предмет вы хотите использовать? ")
-        if item_name == "Морковка" and locations[current_location]["Крольчонок"] == True and locations[current_location]["Дупло"] == True:
-            locations[current_location]["Крольчонок"] = False
+        if item_name == "Морковка" and location["Крольчонок"] == True and location["Дупло"] == True:
+            location["Крольчонок"] = False
             print("Вы подкормили крольчонка морковкой!")
-        elif item_name == "Ягода" and locations[current_location]["Лиса"] == True:
-            locations[current_location]["Лиса"] = False
+        elif item_name == "Ягода" and location["Лиса"] == True:
+            location["Лиса"] = False
             print("Вы отвлекли лису ягодой!")
-        elif item_name == "Палочка" and locations[current_location]["Речка"] == True and locations[current_location]["Мостик"] == False:
-            locations[current_location]["Мостик"] = True
+        elif item_name == "Палочка" and location["Речка"] == True and location["Мостик"] == True:
+            location["Мостик"] = False
             print("Вы построили мостик из палки!")
         else:
             print("Этот предмет нельзя использовать здесь.")
-
-    elif command == "перейти":
-        if current_location == "Лесная поляна" and locations[current_location]["Крольчонок"] == False:
-            current_location = "Густой лес"
+    elif choice == 3: # перейти
+        if player["Текущая_локация"] == "Лесная поляна" and location["Крольчонок"] == False:
+            player["Текущая_локация"] = "Густой лес"
             print("Вы перешли в Густой лес.")
-        elif current_location == "Густой лес" and locations[current_location]["Лиса"] == False:
-            current_location = "Речка"
+        elif player["Текущая_локация"] == "Густой лес" and location["Лиса"] == False:
+            player["Текущая_локация"] = "Речка"
             print("Вы вышли к речке.")
-        elif current_location == "Речка" and locations[current_location]["Мостик"] == True:
-            current_location = "Нора"
+        elif player["Текущая_локация"] == "Речка" and location["Мостик"] == False:
+            player["Текущая_локация"] = "Нора"
             print("Вы перешли через речку и добрались до норы!")
         else:
             print("В этом направлении нет пути.")
-
+    elif choice == 4: # выйти
+        print("До свидания!")
+        exit()
     else:
-        print("Неизвестная команда.")
+        print("Неверный выбор.")
 
+# Основной цикл игры
 while True:
-    show_location(current_location)
-
-    if locations[current_location]["Задача"]:
-        print(locations[current_location]["Задача"])
-
-    command = input("Введите команду (взять, использовать, перейти, выйти): ").lower()
-
-    if command == "выйти":
-        print("До свидания! иди нахуй")
-        break
-
-    process_command(command)
+    show_location()
+    print(locations[player["Текущая_локация"]]["Задача"])
+    print("\nВыберите действие:")
+    print("1. Взять")
+    print("2. Использовать")
+    print("3. Перейти")
+    print("4. Выйти")
+    try:
+        choice = int(input("Введите номер действия: "))
+        process_command(choice)
+        if player["Текущая_локация"] == "Нора":
+            player["Победа"] = True
+            print("Вы добрались до норы и в безопасности! Вы победили!")
+            break
+    except ValueError:
+        print("Некорректный ввод. Введите число.")
